@@ -10,10 +10,10 @@ extern void doCommandLs();
 extern void SendFileRequest2Server(MSG_DATA_S *pstMsgData, char *filePath, int fd);
 
 /* 发送或接收文件的相关函数 */
-extern void doSendAndRecvFile(char *pcMsgBuf, char *pUsername);
+extern void doSendAndRecvFile(char *pcMsgBuf, char *pUsername, int iSocket);
 
 extern void doSendFile(char *pcMsgBuf);
 
-extern void doRecvFile(char *pcMsgBuf);
+extern void doRecvFile(char *pcMsgBuf, int iSocket);
 
 #endif
