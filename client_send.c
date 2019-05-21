@@ -191,7 +191,7 @@ ulong sendFile2One(MSG_DATA_S *pClientMsg, int iSocket)
 			if(pResult[0] != NULL && strcmp(pResult[0], "put") == 0)
 			{
 				/* 读取指定文件并发送 */
-				SendFileRequest2Server(pClientMsg, pResult[1], iSocket);
+				doSendFile(pClientMsg, pResult[1], iSocket);
 			}
 			else
 			{

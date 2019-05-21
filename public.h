@@ -33,7 +33,7 @@
 #define 	ERROR_SUCCESS 	0
 #define 	ERROR_FAILED 	1
 #define 	MAX_NAME_LEN 	31
-#define 	MAX_WORD_LEN    63	
+#define 	MAX_WORD_LEN    255 
 /*
 typedef struct client
 {
@@ -72,7 +72,7 @@ typedef struct requestMsgHead
 		MSG_TYPE_E enMsgType;               //发送的请求类型
 		char srcName[MAX_NAME_LEN + 1];     //发送者
 		char desName[MAX_NAME_LEN + 1];     //接收者
-		int desFd;							//接受者对应的通信套接字
+		int  filesize;						//传输的文件大小
 }MSG_HEAD_S;
 
 /* 报文内容 */

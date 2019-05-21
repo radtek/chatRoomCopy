@@ -27,7 +27,7 @@ void doCommandLs()
 {
 	system("ls");	
 }
-
+#if 0
 /* 发送文件信息至服务端, 获取接收者的通信套接字 */
 void SendFileRequest2Server(MSG_DATA_S *pstMsgData, char *filePath, int fd)
 {
@@ -65,58 +65,46 @@ void SendFileRequest2Server(MSG_DATA_S *pstMsgData, char *filePath, int fd)
 	//printf("文件信息 : %s\n", pFileInfo);
 	write(fd, pstMsgData, sizeof(MSG_HEAD_S) + MSG_WORD_LEN);
 }
+#endif
 
-/* 发送文件 */
-void doSendFile(char *pcMsgBuf)
+/* 发送文件 
+ * 参数：
+ * 发送的报文，发送的文件路径，和服务端通信的套接字*/
+void doSendFile(char *pcMsgBuf, char *pFilePath, int iSocket)
 {
 	printf("doSendFile function\n");
+	assert(pcMsgBuf != NULL);
+
 	MSG_HEAD_S *pstHead = (MSG_HEAD_S *)pcMsgBuf;
-	assert(pstHead != NULL);
-	printf("接收者fd = %d\n",pstHead->desFd);
 	int filesize = 0;
 	int nread = 0;
-	char filePath[32];
-	char *pFileInfo = (char *)malloc(64);
-	char *pFileBuf = (char *)malloc(512);
-	char *pPre = NULL;
-	char *pCur = NULL;
-	int desFd = pstHead->desFd;
-	if(NULL == pFileInfo)
+	struct stat buf;
+	char *pFileBuf = (char *)malloc(MAX_WORD_LEN + 1);
+	if(NULL == pFileBuf)
 	{
 		perror("doSendFile:malloc");
 		return;
 	}
-	//首先将文件信息拷贝出来
-	memset(pFileInfo, 0, 64);
-	memcpy(pFileInfo, (char *)pcMsgBuf + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-	//然后根据分隔符解析该文件信息(文件名称，文件大小)
-	pPre = pFileInfo;
-	pCur = strchr(pFileInfo, '#');
-	if(NULL == pCur)
-	{
-		perror("doSendFile:pCur");
-		return;
-	}
-	strncpy(filePath, pPre, pCur-pPre);		//获取文件名称
-	filePath[pCur-pPre] = '\0';
-	pCur += 2;
-	filesize = *pCur;						//获取文件大小
-	/* 及时释放申请的资源 */
-	if(pFileInfo != NULL)
-	{
-		free(pFileInfo);
-		pFileInfo = NULL;
-	}
-	int fileFd = open(filePath, O_CREAT | O_RDONLY);
+	int fileFd = open(pFilePath, O_CREAT | O_RDONLY);
 	if(-1 == fileFd)
 	{
 		perror("doSendFile:open");
 		return;
 	}
+	if(-1 == fstat(fileFd, &buf))
+	{
+		perror("doSendFile:fstat");
+		close(fileFd);
+		return;
+	}
+	filesize = buf.st_size;
+	pstHead->filesize = filesize;
 	while(filesize > 0)
 	{
-		memset(pFileBuf, 0, 512);
-		nread = read(fileFd, pFileBuf, 511);
+		memset((char *)pcMsgBuf + sizeof(MSG_HEAD_S), 0, MAX_WORD_LEN);
+		memset(pFileBuf, 0, MAX_WORD_LEN + 1);
+		nread = read(fileFd, pFileBuf, MAX_WORD_LEN);
+		printf("doSendFile  nread = %d\n", nread);
 		if(nread < 0)			/* 读取文件失败 */
 		{
 			perror("doSendFile:read");
@@ -133,16 +121,19 @@ void doSendFile(char *pcMsgBuf)
 		}
 		else
 		{
-			write(desFd, pFileBuf, nread);
+			/* 封装成完整报文体之后发给服务器 */
+			memcpy((char *)pcMsgBuf + sizeof(MSG_HEAD_S), pFileBuf, MAX_WORD_LEN);
+			write(iSocket, pcMsgBuf, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+			printf("send pFileBuf:%s\n", pFileBuf);
 			filesize -= nread;
 		}
 	}
-	printf("文件%s:大小:%d 已成功发送\n", filePath, filesize);
+	printf("文件%s已成功发送\n", pFilePath);
 	if(fileFd > 0)
 	{
 		close(fileFd);		/* 关闭文件描述符 */
 	}
-	if(pFileBuf != NULL)
+	if(pFileBuf != NULL)	/* 释放内存缓冲区 */
 	{
 		free(pFileBuf);
 		pFileBuf = NULL;
@@ -152,80 +143,47 @@ void doSendFile(char *pcMsgBuf)
 }
 
 /* 接收文件 */
-void doRecvFile(char *pcMsgBuf, int iSocket)
+void doRecvFile(char *pcMsgBuf)
 {
 	MSG_HEAD_S *pstHead = (MSG_HEAD_S *)pcMsgBuf;
 	assert(pstHead != NULL);
 
-	int filesize = 0;
+	int filesize = pstHead->filesize;
 	int nread = 0;
-	char filePath[32];
-	char tmpFileSize[6];
-	char *pFileInfo = (char *)malloc(64);
-	char *pFileBuf = (char *)malloc(512);
-	char *pPre = NULL;
-	char *pCur = NULL;
-	int desFd = pstHead->desFd;
-	if(NULL == pFileInfo)
+	char *pFileBuf = (char *)malloc(MAX_WORD_LEN + 1);
+	if(NULL == pFileBuf)
 	{
-		perror("doSendFile:malloc");
+		perror("doRecvFile:malloc");
 		return;
 	}
-	//首先将文件信息拷贝出来
-	memset(pFileInfo, 0, 64);
-	memcpy(pFileInfo, (char *)pcMsgBuf + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-	//然后根据分隔符解析该文件信息(文件名称，文件大小)
-	pPre = pFileInfo;
-	pCur = strchr(pFileInfo, '#');
-	strncpy(filePath, pPre, pCur-pPre);		//获取文件名称
-	filePath[pCur-pPre] = '\0';
-	pCur += 2;
-	pPre = pCur;
-	pCur = strchr(pCur, '#');
-	strncpy(tmpFileSize, pPre, pCur-pPre);
-	tmpFileSize[pCur-pPre] = '\0';
-
-	filesize = atoi(tmpFileSize);						//获取文件大小
-	/* 及时释放申请的资源 */
-	if(pFileInfo != NULL)
-	{
-		free(pFileInfo);
-		pFileInfo = NULL;
-	}
-	int fileFd = open("tmp.txt", O_CREAT | O_APPEND, 0644);
+	int fileFd = open("tmp.txt", O_CREAT | O_RDWR, 0644);
 	if(-1 == fileFd)
 	{
-		perror("doSendFile:open");
+		perror("doRecvFile:open");
 		return;
 	}
-	printf("filePath : %s, filesize : %d\n",filePath, filesize);
+	printf("待接收的文件大小 : %d\n", filesize);
 	while(filesize > 0)
 	{
-		sleep(1);
-		memset(pFileBuf, 0, 512);
-		nread = read(iSocket, pFileBuf, 511);
-		printf("nread = %d\n", nread);
-		if(nread < 0)			/* 读取文件失败 */
+		memset(pFileBuf, 0, MAX_WORD_LEN + 1);
+		/* 拷贝报文体中的数据到缓冲区 */
+		memcpy(pFileBuf, (char *)pcMsgBuf + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+		printf("doRecvFile start read.");
+		/* 将缓冲区的内容写入文件 */
+		int nwrite = write(fileFd, pFileBuf, strlen(pFileBuf));
+		if(nwrite == -1)
 		{
-			perror("doRecvFile:read");
-			if(pFileBuf != NULL)
-			{
-				free(pFileBuf);
-				pFileBuf = NULL;
-			}
+			perror("doRecvFile:write");
 			return;
-		}
-		else if(0 == nread)		/* 文件内容已经读完 */
-		{
-			break;
 		}
 		else
 		{
-			write(fileFd, pFileBuf, nread);
-			filesize -= nread;
+			printf("doRecvFile nwrite = %d\n", nwrite);
 		}
+		printf("recv pFileBuf:%s\n", pFileBuf);
+		filesize -= strlen(pFileBuf);
 	}
-	printf("文件%s:大小:%d 已成功发送\n", filePath, filesize);
+	printf("成功接收一份文件\n");
 	if(fileFd > 0)
 	{
 		close(fileFd);		/* 关闭文件描述符 */
@@ -237,8 +195,11 @@ void doRecvFile(char *pcMsgBuf, int iSocket)
 	}
 
 	return;
-	
 }
+
+
+#if 1
+#else
 
 /* 发送抑或接收文件 */
 void	doSendAndRecvFile(char *pcMsgBuf, char *pName, int iSocket)
@@ -255,8 +216,6 @@ void	doSendAndRecvFile(char *pcMsgBuf, char *pName, int iSocket)
 	}
 }	
 
-#if 1
-#else
 int main()
 {
 

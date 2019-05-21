@@ -85,11 +85,8 @@ ulong 	sendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 	}
 	else
 	{
-		pstMsgHead->desFd = pSearchNode->sfd;
-		//将文件信息发送给接收者，让其准备接受文件
+		/* 将文件报文转发给接收者 */
 		write(pSearchNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
-		//将接收者的通信套接字信息转发给文件发送者
-		write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
 	}
 
 	return ulErrCode;

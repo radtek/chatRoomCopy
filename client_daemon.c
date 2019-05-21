@@ -50,7 +50,7 @@ void *clientProcRecvMsg(void *arg)
 			pMsgHead = (MSG_HEAD_S *)pcMsgBuf;
 			if(pMsgHead->enMsgType == MSG_TYPE_SENDFILE)
 			{
-				doSendAndRecvFile(pcMsgBuf, pstUserInfo->name, iSocket);
+				doRecvFile(pcMsgBuf);
 			}
 			else
 			{
