@@ -8,7 +8,7 @@ extern Linklist *g_pList;
 /* 接收用户显示用户列表的请求 */
 ulong	procShowuserMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
-	printf("showuser");
+	printf("users exec showuser operation\n");
 }
 
 /* 接收用户一对一通信的请求 */
@@ -27,7 +27,6 @@ ulong 	procMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 	Linklist *pDestNode = searchName(g_pList, pcDesName);
 	if(NULL == pDestNode)
 	{
-		printf("not found the receiver..\n");
 		/* 对方不在线, 暂且将信息原路返回 */
 		memcpy((char *)pstData + sizeof(MSG_HEAD_S), reply, strlen(reply));
 		if(reply != NULL)
@@ -39,8 +38,6 @@ ulong 	procMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 	}
 	else
 	{
-		printf("found the receiver..\n");
-		//memcpy(tmpWord, pstData+sizeof(MSG_HEAD_S),MAX_WORD_LEN);
 		//printf("destination name:%s\n",pDestNode->name);
 		write(pDestNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
 	}
@@ -75,18 +72,22 @@ ulong 	sendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 		perror("sendFile2One");
 		return ERROR_FAILED;
 	}
+	char reply[32] = "receiver is not online\n";
 	Linklist 	*pSearchNode = g_pList->next;
 	while(pSearchNode != NULL && strcmp(pSearchNode->name, pcDesName) != 0)
 		pSearchNode = pSearchNode->next;
 	/* 没找到接收者 */
 	if(pSearchNode == NULL)
 	{
-		write(srcFd, "recevier is not online", strlen("recevier is not online"));
+		/* 清空报文体，原路返回 */
+		memset(pstData->pData, 0, MAX_WORD_LEN + 1);
+		memcpy(pstData->pData, reply, strlen(reply));
+		write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN); 
 	}
 	else
 	{
 		/* 将文件报文转发给接收者 */
-		write(pSearchNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+		write(pSearchNode->sfd, (char *)pstData, sizeof(MSG_DATA_S));
 	}
 
 	return ulErrCode;
@@ -119,11 +120,12 @@ ulong 	sendLogoutMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 	MSG_HEAD_S *pstMsgHead = NULL;
 	pstMsgHead = (MSG_HEAD_S *)pstData;
 	printf("user %s loged out\n", pstMsgHead->srcName);
+	/*
 	if(pstData->pData != NULL)
 	{
 		free(pstData->pData);
 		pstData->pData = NULL;
-	}
+	}*/
 	if(pstData != NULL)
 	{
 		free(pstData);

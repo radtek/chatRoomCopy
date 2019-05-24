@@ -264,7 +264,10 @@ ulong 	checkUserInfo(char 	*pSrcName)
 			exit(1);
 		}
 		if(x == '0')
+		{
+			ulErrCode = ERROR_FAILED;
 			break;
+		}
 		if('1' == x)
 		{
 			ulErrCode = doReg(pConnect);
@@ -296,7 +299,14 @@ void 	getUserList()
 	MYSQL 	*pConnect = NULL;
 	MYSQL_RES *pResult = NULL;
 	MYSQL_ROW 	*pRow = NULL;
+	printf("before mysql_init\n");
 	pConnect = mysql_init(NULL);
+	printf("after mysql_init\n");
+	if(pConnect == NULL)
+	{
+		perror("mysql_init");
+		return;
+	}
 	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
 	if(NULL == pConnect)
 	{

@@ -1,10 +1,17 @@
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdlib.h>
 
 int main()
 {
-	char buf[20];
-	read(STDIN_FILENO, buf, sizeof(buf)-1);
-	printf("%s",buf);
+	char command[64];
+	gets(command);
+	if(strcmp(command, "exit") == 0)
+	{
+		goto end;
+	}
+	printf("command = %s\n", command);
+
+end:
+	printf("hehe\n");
+	return 0;
 }

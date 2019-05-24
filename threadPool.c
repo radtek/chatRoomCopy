@@ -49,7 +49,7 @@ void 	*procClientRequest(void 	*arg)
 			return NULL;
 		}
 		printf("线程回调处理函数\n");
-		char 	*pcMsgBuf = (char *)malloc(256);
+		char 	*pcMsgBuf = (char *)malloc(sizeof(MSG_DATA_S));
 		if(NULL == pcMsgBuf)
 		{
 			perror("procClientRequest:calloc");
@@ -87,9 +87,9 @@ void 	*procClientRequest(void 	*arg)
   		/* 服务端读取客户端发来的报文 */	
 		do
 		{
-			memset(pcMsgBuf, 0, 256);
+			memset(pcMsgBuf, 0, sizeof(MSG_DATA_S));
 			//printf("我阻塞在read这了, cFd = %d, ..\n");
-			nread = read(cFd, pcMsgBuf, 255);
+			nread = read(cFd, pcMsgBuf, sizeof(MSG_DATA_S));
 			memcpy(pRecvMsg, (char *)pcMsgBuf + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
 			printf("服务端读取客户端的数据\n");
 			/* 如果客户端exit停止发送消息, 线程结束此次任务 */
@@ -98,7 +98,6 @@ void 	*procClientRequest(void 	*arg)
 				//printf("pRecvMsg = %s\n", pRecvMsg);
 				//continue不能break, break则该套接字数据就无法被继续读取
 				continue;
-				//break;
 			}
 			/* read failed */
 			if(nread < 0)

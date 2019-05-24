@@ -50,7 +50,7 @@ void *clientProcRecvMsg(void *arg)
 			pMsgHead = (MSG_HEAD_S *)pcMsgBuf;
 			if(pMsgHead->enMsgType == MSG_TYPE_SENDFILE)
 			{
-				doRecvFile(pcMsgBuf);
+				doRecvFile((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name);
 			}
 			else
 			{
@@ -128,7 +128,7 @@ void dispatchMsg(MSG_DATA_S *pClientData, int iClientFd)
 	assert(pClientData != NULL);
 	
 	int 	iOpt = pClientData->stMsgHead.enMsgType;
-	printf("clientFd =%d iOpt = %d\n",iClientFd, iOpt);
+	//printf("clientFd =%d iOpt = %d\n",iClientFd, iOpt);
 	CLIENT_OPTION_S 	*pstMsgOpt = astClientOptFunc;
 	//根据客户端的不同请求调用不同的处理函数
 	pstMsgOpt[iOpt].pfClientMsgOption(pClientData, iClientFd);
@@ -209,7 +209,11 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		if(2 == flag || 0 == flag)
 			continue;
 		if(1 == flag)
+		{
+			/* 清空之前存储的报文体内容 */
+			memset(pClientData->pData, 0, MAX_WORD_LEN + 1);
 			dispatchMsg(pClientData,iClientFd);
+		}
 
 	}while(iChoice != 6);
 
@@ -227,6 +231,7 @@ ulong initClientResource(char *pSrcName)
 	int iClientFd;
 	pthread_t pId;
 	MSG_DATA_S 	*pClientData;
+	char *pData = NULL;
 	USER_INFO_S *pstUserInfo = (USER_INFO_S *)malloc(sizeof(USER_INFO_S));
 	if(NULL == pstUserInfo)
 	{
@@ -242,15 +247,25 @@ ulong initClientResource(char *pSrcName)
 			return ERROR_FAILED;
 		}*/
 		pClientData = (MSG_DATA_S *)malloc(sizeof(MSG_DATA_S));
-		/* 对这种复合型资源, 要先清零外层资源,然后才能申请内层资源 */
-		//memset(pMsg, 0, 1024);
-		memset(pClientData, 0, sizeof(MSG_DATA_S));
-		//pClientData = (MSG_DATA_S *)pMsg;
-		pClientData->pData = (char *)malloc(MAX_WORD_LEN + 1);
-		if(NULL == pClientData->pData)
+		if(NULL == pClientData)
 		{
+			perror("initClientResource:malloc");
 			return ERROR_FAILED;
 		}
+		/* 对这种复合型资源, 要先清零外层资源,然后才能申请内层资源 */
+		memset(pClientData, 0, sizeof(MSG_DATA_S));
+		/*
+		pData = (char *)malloc(MAX_WORD_LEN + 1);
+		if(NULL == pData)
+		{
+			free(pClientData);
+			pClientData = NULL;
+			perror("initClientResource:malloc");
+			return ERROR_FAILED;
+		}
+		memset(pData, 0, MAX_WORD_LEN + 1);
+		pClientData->pData = pData;
+		*/
 		/* 创建客户端套接字 */
 		ulErrCode = createClientSocket(&iClientFd);
 		if(ERROR_FAILED == ulErrCode)
@@ -282,11 +297,12 @@ ulong initClientResource(char *pSrcName)
 	{
 		close(iClientFd);
 	}
+	/*
 	if(pClientData->pData != NULL)
 	{
 		free(pClientData->pData);
 		pClientData->pData = NULL;
-	}
+	}*/
 	if(pClientData != NULL)
 	{
 		free(pClientData);

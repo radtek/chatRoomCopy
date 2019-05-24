@@ -42,7 +42,7 @@ void readBanFromServer(Message *mes)
 
 void *func(void *arg)
 {
-	int sfd=(int)arg;
+	int sfd=(int)(long)arg;
 	Message mes;
 	while(1)
 	{
@@ -168,19 +168,19 @@ int main()
 	int sfd, s_len;
 	struct sockaddr_in s_addr;
 	s_addr.sin_family=AF_INET;
-	s_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-	s_addr.sin_port=6666;
+	s_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
+	s_addr.sin_port = htons(9999);
 	s_len=sizeof(s_addr);
 	sfd=socket(AF_INET,SOCK_STREAM,0);
-	printf("client:%d\n",sfd);
 	if(sfd == -1)
 		handle_error("socket");
+	printf("clientFd : %d\n",sfd);
 	if(connect(sfd,(struct sockaddr *)&s_addr,s_len) == -1)
 		handle_error("connect error");
 	strcpy(mes.word,"client connect success");
 	write(sfd,&mes,sizeof(mes));
 
-	pthread_create(&tid,0,func,(void *)sfd);
+	pthread_create(&tid,0,func,(void *)(long)sfd);
 	pthread_detach(tid);
 
 	memset(&mes,0,sizeof(mes));
@@ -219,16 +219,3 @@ int main()
 	}while(x != 0);
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

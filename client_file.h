@@ -12,8 +12,8 @@ extern void SendFileRequest2Server(MSG_DATA_S *pstMsgData, char *filePath, int f
 /* 发送或接收文件的相关函数 */
 extern void doSendAndRecvFile(char *pcMsgBuf, char *pUsername, int iSocket);
 
-extern void doSendFile(char *pcMsgBuf, char *pFilePath, int iSocket);
+extern void doSendFile(MSG_DATA_S *pstClientMsg, char *pFilePath, int iSocket);
 
-extern void doRecvFile(char *pcMsgBuf);
+extern void doRecvFile(MSG_DATA_S *pstClientMsg, char *pName);
 
 #endif

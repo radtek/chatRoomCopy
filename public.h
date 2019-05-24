@@ -79,7 +79,7 @@ typedef struct requestMsgHead
 typedef struct requestMsg
 {
 		MSG_HEAD_S stMsgHead;           //报文头结构体
-		void *pData;                    //有效数据
+		char pData[MAX_WORD_LEN + 1];                    //有效数据
 }MSG_DATA_S;
 
 
