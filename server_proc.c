@@ -88,8 +88,10 @@ ulong 	sendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 	}
 	else
 	{
+		//printf("\n\n%s\n\n", pstData->pData);
 		/* 将文件报文转发给接收者 */
 		write(pSearchNode->sfd, (char *)pstData, sizeof(MSG_DATA_S));
+		sleep(1);
 	}
 
 	return ulErrCode;

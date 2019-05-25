@@ -31,6 +31,7 @@ void *clientProcRecvMsg(void *arg)
 {	
 	int iRec = -1;
 	int nread = 0;
+	int filePacketNum = 0;
 	USER_INFO_S *pstUserInfo = (USER_INFO_S *)arg;
 	int iSocket = pstUserInfo->fd;
 	MSG_HEAD_S *pMsgHead = NULL;
@@ -48,6 +49,8 @@ void *clientProcRecvMsg(void *arg)
 		memset(pcMsgBuf, 0, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
 		memset(pcWord, 0, MAX_WORD_LEN + 1);
 		nread = read(iSocket, pcMsgBuf, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+		//printf("nread = %d\n",nread);
+		//printf("aaa%s\n",((MSG_DATA_S *)pcMsgBuf)->pData);
 		if(nread < 0)
 		{
 			perror("client read");
@@ -64,7 +67,7 @@ void *clientProcRecvMsg(void *arg)
 			pMsgHead = (MSG_HEAD_S *)pcMsgBuf;
 			if(pMsgHead->enMsgType == MSG_TYPE_SENDFILE)
 			{
-				doRecvFile((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name);
+				doRecvFile((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name, &filePacketNum);
 			}
 			else
 			{
@@ -180,11 +183,13 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		printf("***********3.和所有人闲聊		  **********\n");
 		printf("***********4.给某人发送文件		  **********\n");
 		printf("***********5.禁言某人			  **********\n");
-		printf("***********6.下线			  **********\n");
+		printf("***********6.下线			    **********\n");
 		printf("***********返回此界面快捷键exit	  	  **********\n");
 		/* 访问数据库获取离线时收到的消息 */
 		if(0 == hasCheck)
 		{
+			/* 获取数据库中记录的该用户相关的离线消息 
+			 * 获取并显示给用户之后则清除该消息 */
 			getUserMsgFromMysql(pSrcName);
 			/* 为什么在这改变hascheck的值没作用？ */
 			//hasCheck = 1;

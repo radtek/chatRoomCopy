@@ -16,6 +16,7 @@
 #include <sys/epoll.h>
 #include <termios.h>
 #include <time.h>
+#include <strings.h>
 #include <sys/time.h>
 #include "threadPool.h"
 //#include "circleList.h"

@@ -125,6 +125,7 @@ void 	*procClientRequest(void 	*arg)
 			}
 			else
 			{
+				//printf("server:%s\n",((MSG_DATA_S *)pcMsgBuf)->pData);
 				pstMsgHead = (MSG_HEAD_S *)pcMsgBuf;
 				//strcpy(clientName, pstMsgHead->srcName);
 				enMsgType = pstMsgHead->enMsgType;

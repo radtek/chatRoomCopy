@@ -3,15 +3,9 @@
 #include <time.h>
 #include <sys/time.h>
 
-char *getLocalTime(char *pRetTime, int len)
+void func(int a, int b)
 {
-	time_t tmpTime;
-	/* 获取当前系统时间 */
-	time(&tmpTime);
-	struct tm *pNowTime;
-	/* 将获取的时间结构化为本地时间 */
-	pNowTime = localtime(&tmpTime);
-	snprintf(pRetTime, len, "%d:%d:%d", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec);
+	return ((a > b)? a : b);
 }
 
 int main()
@@ -19,4 +13,37 @@ int main()
 	char *pNowTime = (char *)malloc(32);
 	getLocalTime(pNowTime, 32);
 	printf("%s\n",pNowTime);
+	printf("this is a test case\n");
+	printf("hello world\n");
 }
+
+void func(int a, int b)
+{
+	return ((a > b)? a : b);
+}
+
+int main()
+{
+	char *pNowTime = (char *)malloc(32);
+	getLocalTime(pNowTime, 32);
+	printf("%s\n",pNowTime);
+	printf("this is a test case\n");
+	printf("hello world\n");
+}
+what the fuck
+what the fuck
+void func(int a, int b)
+{
+	return ((a > b)? a : b);
+}
+
+int main()
+{
+	char *pNowTime = (char *)malloc(32);
+	getLocalTime(pNowTime, 32);
+	printf("%s\n",pNowTime);
+	printf("this is a test case\n");
+	printf("hello world\n");
+}
+what the fuck
+what the fuck

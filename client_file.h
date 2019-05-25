@@ -14,6 +14,6 @@ extern void doSendAndRecvFile(char *pcMsgBuf, char *pUsername, int iSocket);
 
 extern void doSendFile(MSG_DATA_S *pstClientMsg, char *pFilePath, int iSocket);
 
-extern void doRecvFile(MSG_DATA_S *pstClientMsg, char *pName);
+extern void doRecvFile(MSG_DATA_S *pstClientMsg, char *pName, int *pFilePacketNum);
 
 #endif

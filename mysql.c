@@ -359,11 +359,12 @@ void getUserMsgFromMysql(char *pSrcName)
 	{
 		handle_error("mysql_real_connect");
 	}
+	/* 获取用户收到的离线消息并展示给用户 */
 	snprintf(tmpSql, sizeof(tmpSql), "select srcName, words, time  from message where desName ='%s'", pSrcName);
 	res = mysql_query(pConnect, tmpSql); 
     if(res != 0)
 	{
-		perror("addClientInfo2DB");
+		perror("getUserMsgFromMysql:mysql_query");
 		mysql_close(pConnect);
 	}
 	else
@@ -382,6 +383,16 @@ void getUserMsgFromMysql(char *pSrcName)
 			mysql_free_result(pResult);
 		}
 	}
+	/* 删除离线消息记录 */
+	bzero(tmpSql, sizeof(tmpSql));
+	snprintf(tmpSql, sizeof(tmpSql), "delete from message where desName ='%s'", pSrcName);
+	res = mysql_query(pConnect, tmpSql); 
+    if(res != 0)
+	{
+		perror("getUserMsgFromMysql:mysql_query");
+		mysql_close(pConnect);
+	}
+
 	mysql_close(pConnect);
 }
 
