@@ -17,24 +17,26 @@ ulong 	procMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
 	char *tmpWord = (char *)malloc(MAX_WORD_LEN);
-	char *reply = (char *)malloc(64);
+	/*char *reply = (char *)malloc(64);
 	if(NULL == reply)
 	{
 		perror("procMsg2One");
 		return ERROR_FAILED;
 	}
-	strcpy(reply, "the receiver is not online");
+	strcpy(reply, "the receiver is not online");*/
 	Linklist *pDestNode = searchName(g_pList, pcDesName);
 	if(NULL == pDestNode)
 	{
 		/* 对方不在线, 暂且将信息原路返回 */
-		memcpy((char *)pstData + sizeof(MSG_HEAD_S), reply, strlen(reply));
+		/*memcpy((char *)pstData + sizeof(MSG_HEAD_S), reply, strlen(reply));
 		if(reply != NULL)
 		{
 			free(reply);
 			reply = NULL;
 		}
-		write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+		write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);*/
+		/* 将用户离线时收到的消息暂存在数据库中 */
+		insertUserMsg2Mysql(pstData, pcDesName);	
 	}
 	else
 	{

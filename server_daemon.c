@@ -49,6 +49,7 @@ ulong acceptClientConnect(void 	*arg)
 	int listenFd = INVALID_FD;
 	int cFd = INVALID_FD;
 	char clientIp[32];
+	USER_INFO_S stUserInfo;
 	pthread_t pid;
 	pMyEpollEvent = pFdEvent->data.ptr;
 	struct sockaddr_in cAddr;
@@ -63,6 +64,7 @@ ulong acceptClientConnect(void 	*arg)
 	}
 	else
 	{
+		printf("server accept\n");
 		/* 与客户端通信的套接字 */
 		cFd = accept(listenFd, (struct sockaddr *)&cAddr, &cLen);
 		/* 套接字>=0,都是正常的 */
@@ -79,10 +81,11 @@ ulong acceptClientConnect(void 	*arg)
 			/* 添加用户信息到linklist */
 			//g_pList = insertList(g_pList, (DTQ_Node *)pstClientInfo);
 			insertNode(g_pList, clientName, cFd);
-			//insertFd2Mysql(clientName, cFd);
+			strcpy(stUserInfo.name, clientName);
+			stUserInfo.fd = cFd;
 			/* 将新建立的套接字加入到epoll中进行监听 */
 			//ulErrCode = addFd2Epoll(g_iEpollFd, cFd, addRequest2ThreadPool);
-			pthread_create(&pid, NULL, procClientRequest, (void *)(long)cFd);
+			pthread_create(&pid, NULL, procClientRequest, (void *)&stUserInfo);
 			pthread_detach(pid);
 		}
 		else
@@ -197,12 +200,12 @@ int main()
 	int nready = -1;
 	struct epoll_event events[MAX_EPOLL_EVENT];
 
-	ulErrCode = initThreadPools(MAX_THREADS, MIN_THREADS, START_THREADS);
+	/*ulErrCode = initThreadPools(MAX_THREADS, MIN_THREADS, START_THREADS);
 	if(ulErrCode != ERROR_SUCCESS)
 	{
 		perror("initThreadPools");
 		goto failed;
-	}
+	}*/
 /*	if(pThreadPool == NULL)
 	{
 		perror("pThreadPool NULL");

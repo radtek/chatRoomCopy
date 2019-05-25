@@ -9,5 +9,6 @@
 #define MYSQL_PWD   "du@h3c.COM"
 
 extern 	void 	insertFd2Mysql(char *pUsername, int fd);
+extern  void 	insertUserMsg2Mysql(MSG_DATA_S *pstData, char *pcDesName);
 
 #endif

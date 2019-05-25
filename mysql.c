@@ -292,16 +292,12 @@ ulong 	checkUserInfo(char 	*pSrcName)
 /* 获取用户列表 */
 void 	getUserList()
 {
-	ulong 	ulErrCode = ERROR_SUCCESS;
-
 	int res = 0;
 	char msg[32];
 	MYSQL 	*pConnect = NULL;
 	MYSQL_RES *pResult = NULL;
 	MYSQL_ROW 	*pRow = NULL;
-	printf("before mysql_init\n");
 	pConnect = mysql_init(NULL);
-	printf("after mysql_init\n");
 	if(pConnect == NULL)
 	{
 		perror("mysql_init");
@@ -316,8 +312,6 @@ void 	getUserList()
     if(res != 0)
 	{
 		perror("addClientInfo2DB");
-		mysql_close(pConnect);
-		ulErrCode = ERROR_FAILED;
 	}
 	else
 	{
@@ -341,6 +335,54 @@ void 	getUserList()
 	}while(strcmp(msg,"exit") != 0);
 
 	return;
+}
+
+/* 获取当前用户在离线时收到的消息 */
+void getUserMsgFromMysql(char *pSrcName)
+{
+	ulong 	ulErrCode = ERROR_SUCCESS;
+
+	int res = 0;
+	char msg[64];
+	char tmpSql[128];
+	MYSQL 	*pConnect = NULL;
+	MYSQL_RES *pResult = NULL;
+	MYSQL_ROW 	*pRow = NULL;
+	pConnect = mysql_init(NULL);
+	if(pConnect == NULL)
+	{
+		perror("getUserMsgFromMysql:mysql_init");
+		return;
+	}
+	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
+	if(NULL == pConnect)
+	{
+		handle_error("mysql_real_connect");
+	}
+	snprintf(tmpSql, sizeof(tmpSql), "select srcName, words, time  from message where desName ='%s'", pSrcName);
+	res = mysql_query(pConnect, tmpSql); 
+    if(res != 0)
+	{
+		perror("addClientInfo2DB");
+		mysql_close(pConnect);
+	}
+	else
+	{
+		//printf("yes\n");
+		pResult = mysql_store_result(pConnect);
+		if(pResult != NULL)
+		{
+			printf("您收到的离线消息:\n");
+			while((pRow = (MYSQL_ROW *)mysql_fetch_row(pResult)))
+			{
+				bzero(msg, sizeof(msg));
+				snprintf(msg, sizeof(msg), "%s:%s\t%s", pRow[0],pRow[1],pRow[2]);
+				printf("%s\n",msg);
+			}
+			mysql_free_result(pResult);
+		}
+	}
+	mysql_close(pConnect);
 }
 
 #if 0

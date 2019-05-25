@@ -57,6 +57,7 @@ ulong sendMsg2One(MSG_DATA_S *pstClientMsg, int iSocket)
 	do
 	{
 		memset(pcMsg, 0, MAX_WORD_LEN + 1);
+		memset(pstClientMsg->pData, 0, MAX_WORD_LEN + 1);
 		gets(pcMsg);
 		if(strcmp(pcMsg, "exit") == 0)
 		{
@@ -100,12 +101,12 @@ ulong sendMsg2All(MSG_DATA_S *pstClientMsg, int iSocket)
 	}
 	/* 首先填充报文头 */
 	MSG_HEAD_S *pstMsgHead = (MSG_HEAD_S *)pstClientMsg;
-	printf("%s\n", pstMsgHead->srcName);
 	system("clear");
 	printf("请输入你要群发的消息(exit退出)\n");
 	do
 	{
 		memset(pcMsg, 0, MAX_WORD_LEN + 1);
+		memset(pstClientMsg->pData, 0, MAX_WORD_LEN + 1);
 		gets(pcMsg);
 		if(strcmp(pcMsg, "exit") == 0)
 		{

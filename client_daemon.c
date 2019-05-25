@@ -14,6 +14,19 @@ static CLIENT_OPTION_S 		astClientOptFunc[] =
 	{	MSG_TYPE_LOGOUT,	sendLogoutMsg	}
 };
 
+/* 获取当前的系统时间 */
+char *getLocalTime(char *pRetTime, int maxTimeLen)
+{
+	time_t tmpTime;
+	/* 获取当前系统时间 */
+	time(&tmpTime);
+	struct tm *pNowTime;
+	/* 将获取的时间结构化为本地时间 */
+	pNowTime = localtime(&tmpTime);
+	snprintf(pRetTime, maxTimeLen, "%d:%d:%d", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec);
+}
+
+/* 客户端接收服务端消息的函数 */
 void *clientProcRecvMsg(void *arg)
 {	
 	int iRec = -1;
@@ -23,7 +36,8 @@ void *clientProcRecvMsg(void *arg)
 	MSG_HEAD_S *pMsgHead = NULL;
 	char *pcWord = (char *)malloc(MAX_WORD_LEN + 1);
 	char *pcMsgBuf = (char *)malloc(sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
-	if(NULL == pcMsgBuf || NULL == pcWord)
+	char *pNowTime = (char *)malloc(MAX_TIME_LEN + 1);
+	if(NULL == pcMsgBuf || NULL == pcWord || NULL == pNowTime)
 	{
 		perror("clientProcRecvMsg:malloc");
 		return NULL;
@@ -54,8 +68,9 @@ void *clientProcRecvMsg(void *arg)
 			}
 			else
 			{
+				getLocalTime(pNowTime, MAX_TIME_LEN + 1);
 				memcpy(pcWord, (char *)pcMsgBuf+sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-				printf("%s:%s\n",pMsgHead->srcName, pcWord);
+				printf("%s:%s\t\t%s\n",pMsgHead->srcName, pcWord, pNowTime);
 				//printf("%s\n", pcMsgBuf);
 			}
 		}
@@ -76,6 +91,11 @@ void *clientProcRecvMsg(void *arg)
 	{
 		free(pstUserInfo);
 		pstUserInfo = NULL;
+	}
+	if(pNowTime != NULL)
+	{
+		free(pNowTime);
+		pNowTime = NULL;
 	}
 }
 
@@ -142,6 +162,7 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 	int iChoice;
 	char ch;
 	int flag = 1;
+	int hasCheck = 0;
 	do
 	{
 		system("clear");
@@ -161,6 +182,13 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		printf("***********5.禁言某人			  **********\n");
 		printf("***********6.下线			  **********\n");
 		printf("***********返回此界面快捷键exit	  	  **********\n");
+		/* 访问数据库获取离线时收到的消息 */
+		if(0 == hasCheck)
+		{
+			getUserMsgFromMysql(pSrcName);
+			/* 为什么在这改变hascheck的值没作用？ */
+			//hasCheck = 1;
+		}
 		//这里要用%s, ch也要取地址
 		scanf("%s",&ch);
 		if(!(ch >= '0' && ch <= '9'))
@@ -174,6 +202,7 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 			continue;
 		}
 		flag = 1;
+		hasCheck = 1;
 		iChoice = atoi(&ch);
 		//memset(pClientData, 0, sizeof(MSG_DATA_S));
 		//printf("iChoice = %d\n",iChoice);

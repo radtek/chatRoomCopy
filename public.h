@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include <sys/epoll.h>
 #include <termios.h>
+#include <time.h>
+#include <sys/time.h>
 #include "threadPool.h"
 //#include "circleList.h"
 #include "linklist.h"
@@ -33,6 +35,7 @@
 #define 	ERROR_SUCCESS 	0
 #define 	ERROR_FAILED 	1
 #define 	MAX_NAME_LEN 	31
+#define 	MAX_TIME_LEN    15
 #define 	MAX_WORD_LEN    255 
 /*
 typedef struct client
@@ -131,9 +134,6 @@ typedef struct
 	char name[MAX_NAME_LEN + 1];
 	int fd;
 }USER_INFO_S;
-
-
-
 
 
 #endif

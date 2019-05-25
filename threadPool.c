@@ -71,6 +71,9 @@ void 	*procClientRequest(void 	*arg)
 		SERVER_OPTION_S 	*pstClientOpt = astProcClientOptFunc;
 		MSG_HEAD_S 	*pstMsgHead = NULL;
 		MSG_TYPE_E 	enMsgType;
+		USER_INFO_S *pstUserInfo;
+		char 	clientName[MAX_NAME_LEN + 1];
+		memset(clientName, 0, sizeof(clientName));
 		char *pRecvMsg = (char *)malloc(MAX_WORD_LEN + 1);
 		if(NULL == malloc)
 		{
@@ -78,12 +81,15 @@ void 	*procClientRequest(void 	*arg)
 			return;
 		}
 		memset(pRecvMsg, 0, MAX_NAME_LEN + 1);
-		char 	clientName[MAX_NAME_LEN + 1];
 		//struct epoll_event 	*pFdEvent = (struct epoll_event *)arg;
 		//struct myepoll_event *pMyEpollEvent;
 	    //pMyEpollEvent = pFdEvent->data.ptr;
 		//int cFd = pMyEpollEvent->fd;
-		int cFd = (int)(long)arg;
+		pstUserInfo = (USER_INFO_S *)arg;
+		//printf("%s,%d\n", pstUserInfo->name, pstUserInfo->fd);
+		strcpy(clientName, pstUserInfo->name);
+		int cFd = pstUserInfo->fd;
+		//insertFd2Mysql(clientName, cFd);
   		/* 服务端读取客户端发来的报文 */	
 		do
 		{
@@ -120,7 +126,7 @@ void 	*procClientRequest(void 	*arg)
 			else
 			{
 				pstMsgHead = (MSG_HEAD_S *)pcMsgBuf;
-				strcpy(clientName, pstMsgHead->srcName);
+				//strcpy(clientName, pstMsgHead->srcName);
 				enMsgType = pstMsgHead->enMsgType;
 				strcpy(pcDesName, pstMsgHead->desName);
 				//printf("the username as followings.....\n");
