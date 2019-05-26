@@ -177,6 +177,10 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		{
 			printf("输入有误, 请重新输入\n");
 		}
+		if(flag == 4)
+		{
+			printf("您不是管理员，无法进行该项操作\n");
+		}
 		printf("***********请输入你要进行的操作	  	  **********\n");
 		printf("***********1.查看好友列表		  **********\n");
 		printf("***********2.与好友闲聊			  **********\n");
@@ -242,8 +246,16 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		}
 		if(2 == flag || 0 == flag)
 			continue;
+
+		/* 用户没有被禁言且操作选项无误 */
 		if(1 == flag)
 		{
+			/* 普通用户想使用禁言功能，则提示没有权限 */
+			if(iChoice == 5 && (strcmp(pSrcName, "admin") != 0))
+			{
+				flag = 4;
+				continue;
+			}
 			/* 清空之前存储的报文体内容 */
 			memset(pClientData->pData, 0, MAX_WORD_LEN + 1);
 			dispatchMsg(pClientData,iClientFd);

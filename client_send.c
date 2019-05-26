@@ -101,6 +101,7 @@ ulong sendMsg2All(MSG_DATA_S *pstClientMsg, int iSocket)
 	}
 	/* 首先填充报文头 */
 	MSG_HEAD_S *pstMsgHead = (MSG_HEAD_S *)pstClientMsg;
+	getchar();
 	system("clear");
 	printf("请输入你要群发的消息(exit退出)\n");
 	do
