@@ -1,11 +1,13 @@
 #ifndef CLIENT_SEND_H
 #define CLIENT_SEND_H
 
-extern ulong sendRegMsg(MSG_DATA_S *pClientMsg, int iSocket);
+extern ulong sendShowAllMsg(MSG_DATA_S *pClientMsg, int iSocket);
 
-extern ulong sendLoginMsg(MSG_DATA_S *pClientMsg, int iSocket);
+extern ulong sendShowFriendMsg(MSG_DATA_S *pClientMsg, int iSocket);
 
-extern ulong sendShowuserMsg(MSG_DATA_S *pClientMsg, int iSocket);
+extern ulong sendAddFriendMsg(MSG_DATA_S *pClientMsg, int iSocket);
+
+extern ulong sendDelFriendMsg(MSG_DATA_S *pClientMsg, int iSocket);
 
 extern ulong sendMsg2One(MSG_DATA_S *pClientMsg, int iSocket);
 

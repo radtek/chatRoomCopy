@@ -23,14 +23,17 @@ static ThreadPools *pThreadPool = NULL;
 
 extern Linklist *g_pList;
 
-static SERVER_OPTION_S 		astProcClientOptFunc[] =
+static SERVER_OPTION_S 			astProcClientOptFunc[] =
 {
-		{	MSG_TYPE_SHOWUSER,	procShowuserMsg },
-		{	MSG_TYPE_SENDONE,	procMsg2One		},
-		{	MSG_TYPE_SENDALL,	procMsg2All		},
-		{	MSG_TYPE_SENDFILE,	sendFile2One	},
-		{	MSG_TYPE_BANONE,	banOne 			},
-		{	MSG_TYPE_LOGOUT,	sendLogoutMsg	}
+		{	MSG_TYPE_SHOWALL,	 procShowAllMsg 	},
+		{	MSG_TYPE_SHOWFRIEND, procShowFriendMsg 	},
+		{	MSG_TYPE_ADDFRIEND,	 procAddFriendMsg 	},
+		{	MSG_TYPE_DELFRIEND,	 procDelFriendMsg 	},
+		{	MSG_TYPE_SENDONE,	 procSendMsg2One	},
+		{	MSG_TYPE_SENDALL,	 procSendMsg2All	},
+		{	MSG_TYPE_SENDFILE,	 procSendFile2One	},
+		{	MSG_TYPE_BANONE,	 procBanOne 		},
+		{	MSG_TYPE_LOGOUT,	 procSendLogoutMsg	}
 };
 
 /***********************************************

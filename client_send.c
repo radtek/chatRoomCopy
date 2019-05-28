@@ -5,11 +5,11 @@
 extern int errno;
 int nwrite = 0;
 
-/* 查看好友列表 */
-ulong sendShowuserMsg(MSG_DATA_S *pstClientMsg, int iSocket)
+/* 查看所有用户(仅限管理员) */
+ulong sendShowAllMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 {
 	ulong ulErrCode = ERROR_SUCCESS;
-	
+
 	if(NULL == pstClientMsg)
 	{
 		perror("sendShowuserMsg");
@@ -23,6 +23,40 @@ ulong sendShowuserMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 	getUserList();
 
 	return ulErrCode;
+}
+
+/* 查看好友列表 */
+ulong sendShowFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
+{
+	ulong ulErrCode = ERROR_SUCCESS;
+	
+	if(NULL == pstClientMsg)
+	{
+		perror("sendShowuserMsg");
+		return ERROR_FAILED;
+	}
+	char srcName[MAX_NAME_LEN + 1];
+	strcpy(srcName, pstClientMsg->stMsgHead.srcName);
+	do
+	{
+		// 向和服务端通信的套接字中写数据 
+		nwrite = write(iSocket, pstClientMsg, sizeof(MSG_DATA_S));
+	}while(nwrite == -1 && errno == EINTR);
+	getFriendList(srcName);
+
+	return ulErrCode;
+}
+
+/* 发送添加好友的请求 */
+ulong sendAddFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
+{
+
+}
+
+/* 发送删除好友的请求 */
+ulong sendDelFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
+{
+
 }
 
 /* 发送消息给单个好友 */

@@ -15,8 +15,11 @@ extern int IsBan(char *pUsername);
 /* 用户初始注册与登录函数 */
 extern 	ulong 	checkUserInfo(char *pUsername);
 
-/* 获取用户列表 */
+/* 获取所有用户列表 */
 extern 	void 	getUserList();
+
+/* 获取好友列表 */
+extern  void 	getFriendList(char *pSrcName);
 
 extern 	void 	insertFd2Mysql(char *pUsername, int fd);
 

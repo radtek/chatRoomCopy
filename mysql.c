@@ -1,30 +1,6 @@
 #include "public_client.h"
 #include "mysql.h"
 
-/* 将用户名和用户对应套接字加入usersfd表 */
-/*void insertFd2Mysql(char *pUsername, int fd)
-{
-	MYSQL 		*pConnect = NULL;
-	char tmpSql[64];
-	int res;
-	pConnect = mysql_init(NULL);
-	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
-	if(NULL == pConnect)
-	{
-		handle_error("mysql_real_connect");
-	}
-	snprintf(tmpSql, sizeof(tmpSql), "insert into usersfd values('%s','%d') on duplicate key update set fd='%d'", pUsername, fd, fd);
-
-	res = mysql_query(pConnect, tmpSql);
-	if(res != 0)
-	{
-		perror("insertFd2Mysql:mysql_query");
-		return;
-	}
-
-	mysql_close(pConnect);
-}*/
-
 /* 判断用户是否被禁言 */
 int IsBan(char *pUsername)
 {
@@ -175,7 +151,7 @@ ulong 	doLogin(MYSQL 	*pConnect, char *pSrcName)
 }
 
 /* 注册功能函数 */
-ulong 	doReg(MYSQL 	*pConnect)
+ulong 	doReg(MYSQL 	*pConnect, char *pSrcName)
 {
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
@@ -209,7 +185,7 @@ ulong 	doReg(MYSQL 	*pConnect)
 			break;
 		}
 	}while(1);
-	printf("\n%s %s\n",username,pwd);
+	//printf("\n%s %s\n",username,pwd);
 	/* 先把sql语句给格式化, 然后再去执行相应操作 */
 	snprintf(sqlStr, sizeof(sqlStr), "insert into users(username,password,ban) values('%s','%s','%d')", username, pwd,iBan);
 	res = mysql_query(pConnect, sqlStr); 
@@ -221,7 +197,8 @@ ulong 	doReg(MYSQL 	*pConnect)
 	}
 	else
 	{
-		printf("\n注册成功\n");
+		printf("注册成功,正在跳转至登录界面..\n");
+		ulErrCode = doLogin(pConnect, pSrcName);
 	}
 
 	return ulErrCode;
@@ -270,7 +247,7 @@ ulong 	checkUserInfo(char 	*pSrcName)
 		}
 		if('1' == x)
 		{
-			ulErrCode = doReg(pConnect);
+			ulErrCode = doReg(pConnect, pSrcName);
 			break;
 		}
 		else if('2' == x)
@@ -289,7 +266,7 @@ ulong 	checkUserInfo(char 	*pSrcName)
 	return ulErrCode;
 }
 
-/* 获取用户列表 */
+/* 获取所有用户列表 */
 void 	getUserList()
 {
 	int res = 0;
@@ -311,7 +288,7 @@ void 	getUserList()
 	res = mysql_query(pConnect, "select username,password from users");
     if(res != 0)
 	{
-		perror("addClientInfo2DB");
+		perror("getUserList:mysql_query");
 	}
 	else
 	{
@@ -319,7 +296,7 @@ void 	getUserList()
 		pResult = mysql_store_result(pConnect);
 		if(pResult != NULL)
 		{
-			printf("好友列表(exit退出):\n");
+			printf("所有用户列表(exit退出):\n");
 			while((pRow = (MYSQL_ROW *)mysql_fetch_row(pResult)))
 			{
 				snprintf(msg, sizeof(msg), "用户:%s\t\t", pRow[0]);
@@ -394,6 +371,57 @@ void getUserMsgFromMysql(char *pSrcName)
 	}
 
 	mysql_close(pConnect);
+}
+
+/* 获取好友列表 */
+void 	getFriendList(char *pSrcName)
+{
+	int res = 0;
+	char msg[32];
+	char tmpSql[64];
+	MYSQL 	*pConnect = NULL;
+	MYSQL_RES *pResult = NULL;
+	MYSQL_ROW 	*pRow = NULL;
+	pConnect = mysql_init(NULL);
+	if(pConnect == NULL)
+	{
+		perror("mysql_init");
+		return;
+	}
+	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
+	if(NULL == pConnect)
+	{
+		handle_error("mysql_real_connect");
+	}
+	snprintf(tmpSql, sizeof(tmpSql), "select desName from friends where srcName = '%s'", pSrcName);
+	res = mysql_query(pConnect, tmpSql); 
+    if(res != 0)
+	{
+		perror("getFriendList:mysql_query");
+	}
+	else
+	{
+		//printf("yes\n");
+		pResult = mysql_store_result(pConnect);
+		if(pResult != NULL)
+		{
+			printf("好友列表(exit退出):\n");
+			/* 遍历返回的所有行 */
+			while((pRow = (MYSQL_ROW *)mysql_fetch_row(pResult)))
+			{
+				snprintf(msg, sizeof(msg), "用户:%s\t\t", pRow[0]);
+				printf("%s\n",msg);
+			}
+			mysql_free_result(pResult);
+		}
+	}
+	mysql_close(pConnect);
+	do
+	{
+		scanf("%s",msg);
+	}while(strcmp(msg,"exit") != 0);
+
+	return;
 }
 
 #if 0

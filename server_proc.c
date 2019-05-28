@@ -5,14 +5,30 @@
 /* 对其他文件中全局变量的引用声明 */
 extern Linklist *g_pList;
 
-/* 接收用户显示用户列表的请求 */
-ulong	procShowuserMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+/* 接收管理员用户显示所有用户的请求 */
+ulong	procShowAllMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
-	printf("users exec showuser operation\n");
+
+}
+
+/* 接收用户显示好友列表的请求 */
+ulong	procShowFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+{
+	printf("users exec showfriend operation\n");
+}
+
+/* 处理用户添加好友的请求 */
+ulong	procAddFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+{
+}
+
+/* 处理用户删除好友的请求 */
+ulong	procDelFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+{
 }
 
 /* 接收用户一对一通信的请求 */
-ulong 	procMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
+ulong 	procSendMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 {
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
@@ -48,7 +64,7 @@ ulong 	procMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 }
 
 /* 服务端处理转发群发消息的请求 */
-ulong 	procMsg2All(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+ulong 	procSendMsg2All(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
@@ -64,7 +80,7 @@ ulong 	procMsg2All(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 }
 
 /* pstData是报文数据, pcDesName是接受者的用户名, srcFd是和发送者通信的套接字 */
-ulong 	sendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+ulong 	procSendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
@@ -99,7 +115,7 @@ ulong 	sendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 
 /* 处理客户端发送的禁言某用户的请求 */
 /* 该功能由客户端直接和数据库进行交互, 暂时保留该接口, 可以根据需求扩展 */
-ulong 	banOne(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+ulong 	procBanOne(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
 	ulong ulErrCode = ERROR_SUCCESS;
 
@@ -113,7 +129,7 @@ ulong 	banOne(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 }
 
 /* 处理用户退出登录的请求 */
-ulong 	sendLogoutMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
+ulong 	procSendLogoutMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
 	ulong ulErrCode = ERROR_SUCCESS;
 

@@ -84,7 +84,7 @@ void doSendFile(MSG_DATA_S  *pstClientMsg, char *pcFilePath, int iSocket)
 	struct stat fileinfo;
 	char fileBuf[MAX_WORD_LEN + 1];
 	FILE *fp = NULL;
-	fp = fopen(pcFilePath, "r+");
+	fp = fopen(pcFilePath, "rb+");
 	if(NULL == fp)
 	{
 		perror("doSendFile:fopen");

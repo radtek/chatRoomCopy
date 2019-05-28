@@ -62,7 +62,10 @@ typedef     ulong   (*EPOLL_CALLBACK_PF)(void *);
 /* 消息类型 */
 typedef enum msgType
 {
-		MSG_TYPE_SHOWUSER = 0,
+		MSG_TYPE_SHOWALL  = 0,
+		MSG_TYPE_SHOWFRIEND,
+		MSG_TYPE_ADDFRIEND,
+		MSG_TYPE_DELFRIEND,
 		MSG_TYPE_SENDONE,
 		MSG_TYPE_SENDALL,
 		MSG_TYPE_SENDFILE,

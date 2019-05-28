@@ -4,14 +4,17 @@
 #include "mysql.h"
 extern int errno;
 
-static CLIENT_OPTION_S 		astClientOptFunc[] = 
+static CLIENT_OPTION_S 			astClientOptFunc[] = 
 {
-	{	MSG_TYPE_SHOWUSER, 	sendShowuserMsg	},
-	{	MSG_TYPE_SENDONE,	sendMsg2One		},
-	{	MSG_TYPE_SENDALL,	sendMsg2All		},
-	{	MSG_TYPE_SENDFILE,	sendFile2One	},
-	{	MSG_TYPE_BANONE,	banOne			},
-	{	MSG_TYPE_LOGOUT,	sendLogoutMsg	}
+	{	MSG_TYPE_SHOWALL, 		sendShowAllMsg		},
+	{	MSG_TYPE_SHOWFRIEND, 	sendShowFriendMsg	},
+	{	MSG_TYPE_ADDFRIEND, 	sendAddFriendMsg	},
+	{	MSG_TYPE_DELFRIEND, 	sendDelFriendMsg	},
+	{	MSG_TYPE_SENDONE,		sendMsg2One			},
+	{	MSG_TYPE_SENDALL,		sendMsg2All			},
+	{	MSG_TYPE_SENDFILE,		sendFile2One		},
+	{	MSG_TYPE_BANONE,		banOne				},
+	{	MSG_TYPE_LOGOUT,		sendLogoutMsg		}
 };
 
 /* 获取当前的系统时间 */
@@ -123,6 +126,7 @@ ulong createClientSocket(int *piSocket)
 	int iClientSocket;
 
 	sAddr.sin_family = AF_INET;
+	//sAddr.sin_addr.s_addr = inet_addr("118.25.154.28");
 	sAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
     sAddr.sin_port = htons(6666);
 	sLen = sizeof(sAddr);
@@ -163,6 +167,7 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 	assert(pSrcName != NULL);
 
 	int iChoice;
+	int iAddOrDel;
 	char ch;
 	int flag = 1;
 	int hasCheck = 0;
@@ -182,12 +187,14 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 			printf("您不是管理员，无法进行该项操作\n");
 		}
 		printf("***********请输入你要进行的操作	  	  **********\n");
-		printf("***********1.查看好友列表		  **********\n");
-		printf("***********2.与好友闲聊			  **********\n");
-		printf("***********3.和所有人闲聊		  **********\n");
-		printf("***********4.给某人发送文件		  **********\n");
-		printf("***********5.禁言某人			  **********\n");
-		printf("***********6.下线			    **********\n");
+		printf("***********1.查看所有用户 	    **********\n");
+		printf("***********2.查看好友列表 	    **********\n");
+		printf("***********3.添加/删除好友 	    **********\n");
+		printf("***********4.和好友私聊			  **********\n");
+		printf("***********5.和所有好友闲聊		  **********\n");
+		printf("***********6.给好友发送文件		  **********\n");
+		printf("***********7.禁言某人			  **********\n");
+		printf("***********8.下线			    **********\n");
 		printf("***********返回此界面快捷键exit	  	  **********\n");
 		/* 访问数据库获取离线时收到的消息 */
 		if(0 == hasCheck)
@@ -219,25 +226,39 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		switch(iChoice)
 		{
 			case 1:
-				pClientData->stMsgHead.enMsgType = MSG_TYPE_SHOWUSER;
+				pClientData->stMsgHead.enMsgType = MSG_TYPE_SHOWALL;
 				break;
 			case 2:
+				pClientData->stMsgHead.enMsgType = MSG_TYPE_SHOWFRIEND;
+				break;
+			case 3:
+				do
+				{
+					printf("**********0.添加好友 1.删除好友*********\n");
+					scanf("%d", &iAddOrDel);
+				}while(iAddOrDel != 0 && iAddOrDel != 1);
+				if(0 == iAddOrDel)
+					pClientData->stMsgHead.enMsgType = MSG_TYPE_ADDFRIEND;
+				else
+					pClientData->stMsgHead.enMsgType = MSG_TYPE_DELFRIEND;
+				break;
+			case 4:
 				if(IsBan(pSrcName))
 					flag = 2;
 				pClientData->stMsgHead.enMsgType = MSG_TYPE_SENDONE;
 				break;
-			case 3:
+			case 5:
 				if(IsBan(pSrcName))
 					flag = 2;
 				pClientData->stMsgHead.enMsgType = MSG_TYPE_SENDALL;
 				break;
-			case 4:
+			case 6:
 				pClientData->stMsgHead.enMsgType = MSG_TYPE_SENDFILE;
 				break;
-			case 5:
+			case 7:
 				pClientData->stMsgHead.enMsgType = MSG_TYPE_BANONE;
 				break;
-			case 6:
+			case 8:
 				pClientData->stMsgHead.enMsgType = MSG_TYPE_LOGOUT;
 				return;
 			default:
@@ -251,7 +272,8 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 		if(1 == flag)
 		{
 			/* 普通用户想使用禁言功能，则提示没有权限 */
-			if(iChoice == 5 && (strcmp(pSrcName, "admin") != 0))
+			if((iChoice == 7 || iChoice == 1) && 
+					(strcmp(pSrcName, "admin") != 0))
 			{
 				flag = 4;
 				continue;
@@ -261,7 +283,7 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 			dispatchMsg(pClientData,iClientFd);
 		}
 
-	}while(iChoice != 6);
+	}while(iChoice != 8);
 
 	return;
 }
@@ -330,7 +352,7 @@ ulong initClientResource(char *pSrcName)
 			break;
 		}
 		strcpy(pClientData->stMsgHead.srcName, pSrcName);
-		printf("pSrcName : %s\n", pClientData->stMsgHead.srcName);
+		printf("当前用户 : %s\n", pClientData->stMsgHead.srcName);
 		/* 设置线程状态为分离态,待运行结束由操作系统回收其资源 */
 		pthread_detach(pId);
 		dispatchClientRequest(pClientData, iClientFd, pSrcName);
