@@ -72,6 +72,10 @@ void *clientProcRecvMsg(void *arg)
 			{
 				doRecvFile((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name, &filePacketNum);
 			}
+			if(pMsgHead->enMsgType == MSG_TYPE_ADDFRIEND)
+			{
+				doProcAddFriendRequest((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name);
+			}
 			else
 			{
 				getLocalTime(pNowTime, MAX_TIME_LEN + 1);
@@ -187,14 +191,14 @@ void dispatchClientRequest(MSG_DATA_S *pClientData, int iClientFd, char *pSrcNam
 			printf("您不是管理员，无法进行该项操作\n");
 		}
 		printf("***********请输入你要进行的操作	  	  **********\n");
-		printf("***********1.查看所有用户 	    **********\n");
-		printf("***********2.查看好友列表 	    **********\n");
-		printf("***********3.添加/删除好友 	    **********\n");
-		printf("***********4.和好友私聊			  **********\n");
+		printf("***********1.查看所有用户 	    	  **********\n");
+		printf("***********2.查看好友列表 	    	  **********\n");
+		printf("***********3.添加/删除好友 	    	  **********\n");
+		printf("***********4.和好友私聊			  	  **********\n");
 		printf("***********5.和所有好友闲聊		  **********\n");
 		printf("***********6.给好友发送文件		  **********\n");
 		printf("***********7.禁言某人			  **********\n");
-		printf("***********8.下线			    **********\n");
+		printf("***********8.下线			  **********\n");
 		printf("***********返回此界面快捷键exit	  	  **********\n");
 		/* 访问数据库获取离线时收到的消息 */
 		if(0 == hasCheck)

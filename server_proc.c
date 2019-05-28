@@ -8,7 +8,7 @@ extern Linklist *g_pList;
 /* 接收管理员用户显示所有用户的请求 */
 ulong	procShowAllMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
-
+	printf("users exec showAllUser operation\n");
 }
 
 /* 接收用户显示好友列表的请求 */
@@ -20,6 +20,32 @@ ulong	procShowFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 /* 处理用户添加好友的请求 */
 ulong	procAddFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
+	ulong ulErrCode = ERROR_SUCCESS;
+
+	char retMsg[64];
+	ulErrCode = checkUserIsExist(pcDesName);
+	/* 发送者要添加的用户不存在 */
+	if(ERROR_FAILED == ulErrCode)
+	{
+		strcpy(retMsg, "添加失败, 您要添加的用户不存在");
+		memcpy(pstData->pData, retMsg, strlen(retMsg));
+		write(srcFd, pstData, sizeof(MSG_DATA_S));
+		return ulErrCode;
+	}
+	Linklist *pDestNode = searchName(g_pList, pcDesName);
+	if(NULL == pDestNode)
+	{
+		/* 将用户添加好友的请求暂存在数据库中,待接收方上线之后发送 */
+		//insertAddFriendRequest2Mysql(pstData, pcDesName);	
+	}
+	else
+	{
+		//printf("destination name:%s\n",pDestNode->name);
+		write(pDestNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+	}
+	
+
+	return ulErrCode;
 }
 
 /* 处理用户删除好友的请求 */
@@ -32,25 +58,18 @@ ulong 	procSendMsg2One(MSG_DATA_S 	*pstData, char *pcDesName, int srcFd)
 {
 	ulong 	ulErrCode = ERROR_SUCCESS;
 
-	char *tmpWord = (char *)malloc(MAX_WORD_LEN);
-	/*char *reply = (char *)malloc(64);
-	if(NULL == reply)
+	char retMsg[64] = "您和对方还不是好友关系,无法通信";
+	ulErrCode = checkReciverIsFriend(pstData, pcDesName, srcFd);
+	/* 如果和对方还不是好友关系,则返回相应提示信息给发送者 */
+	if(ERROR_FAILED == ulErrCode)
 	{
-		perror("procMsg2One");
-		return ERROR_FAILED;
+		memcpy(pstData->pData, retMsg, strlen(retMsg));
+		write(srcFd, pstData, sizeof(MSG_DATA_S));
+		return ulErrCode;
 	}
-	strcpy(reply, "the receiver is not online");*/
 	Linklist *pDestNode = searchName(g_pList, pcDesName);
 	if(NULL == pDestNode)
 	{
-		/* 对方不在线, 暂且将信息原路返回 */
-		/*memcpy((char *)pstData + sizeof(MSG_HEAD_S), reply, strlen(reply));
-		if(reply != NULL)
-		{
-			free(reply);
-			reply = NULL;
-		}
-		write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);*/
 		/* 将用户离线时收到的消息暂存在数据库中 */
 		insertUserMsg2Mysql(pstData, pcDesName);	
 	}
