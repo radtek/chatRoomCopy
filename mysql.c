@@ -424,6 +424,39 @@ void 	getFriendList(char *pSrcName)
 	return;
 }
 
+void insertFriend2Mysql(char *pSendName, char *pRecvName)
+{
+	//printf("pSendName = %s, pRecvName = %s\n",pSendName, pRecvName);
+	int res = 0;
+	char msg[32];
+	char insertSql1[64];
+	char insertSql2[64];
+	MYSQL 	*pConnect = NULL;
+	pConnect = mysql_init(NULL);
+	if(pConnect == NULL)
+	{
+		perror("mysql_init");
+		return;
+	}
+	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
+	if(NULL == pConnect)
+	{
+		handle_error("mysql_real_connect");
+	}
+	snprintf(insertSql1, sizeof(insertSql1), "insert into friends(srcName,desName) values('%s','%s')", pSendName, pRecvName);
+	snprintf(insertSql2, sizeof(insertSql2), "insert into friends(srcName,desName) values('%s','%s')", pRecvName, pSendName);
+	res = mysql_query(pConnect, insertSql1); 
+	res += mysql_query(pConnect, insertSql2);
+    if(res != 0)
+	{
+		perror("getFriendList:mysql_query");
+	}
+
+	mysql_close(pConnect);
+
+	return;
+}
+
 #if 0
 int main()
 {

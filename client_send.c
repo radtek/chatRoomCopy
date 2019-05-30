@@ -71,6 +71,7 @@ ulong sendAddFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 	}
 	do
 	{
+		//snprintf(pstClientMsg->pData, MAX_WORD_LEN + 1, "%s想添加您为好友", pstMsgHead->srcName);
 		/* 向和服务端通信的套接字中写数据 */
 		nwrite = write(iSocket, pstClientMsg, sizeof(MSG_DATA_S)); 
 		//printf("client write %d bytes\n", nwrite);

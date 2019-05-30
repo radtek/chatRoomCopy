@@ -2,6 +2,6 @@
 #define CLIENT_PROC_H
 
 /* 处理分析添加好友的用户请求报文 */
-void doProcAddFriendRequest(MSG_DATA_S *pstClientMsg, char *pcName);
+void doProcAddFriendRequest(MSG_DATA_S *pstClientMsg, char *pcName, int iSocket);
 
 #endif

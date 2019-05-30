@@ -14,7 +14,8 @@ int main()
 	printf("hello world\n");
 	*/
 	printf("y/n ?:");
-	scanf("%s",&ch);
+	ch = getchar();
+	printf("ch = %c\n",ch);
 	if(ch == 'y')
 		printf("yes\n");
 	else

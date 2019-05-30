@@ -74,7 +74,7 @@ void *clientProcRecvMsg(void *arg)
 			}
 			if(pMsgHead->enMsgType == MSG_TYPE_ADDFRIEND)
 			{
-				doProcAddFriendRequest((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name);
+				doProcAddFriendRequest((MSG_DATA_S *)pcMsgBuf, pstUserInfo->name, iSocket);
 			}
 			else
 			{
