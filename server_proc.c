@@ -43,7 +43,6 @@ ulong	procAddFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 		//printf("destination name:%s\n",pDestNode->name);
 		write(pDestNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
 	}
-	
 
 	return ulErrCode;
 }
@@ -51,6 +50,22 @@ ulong	procAddFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 /* 处理用户删除好友的请求 */
 ulong	procDelFriendMsg(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 {
+	ulong ulErrCode = ERROR_SUCCESS;
+
+	char retMsg[64];
+	ulErrCode = checkReciverIsFriend(pstData, pcDesName, srcFd);
+	// 发送者要添加的用户不存在 
+	if(ERROR_FAILED == ulErrCode)
+	{
+		strcpy(retMsg, "删除失败,好友列表无此用户");
+		memcpy(pstData->pData, retMsg, strlen(retMsg));
+		write(srcFd, pstData, sizeof(MSG_DATA_S));
+		return ulErrCode;
+	}
+	deleteFriendFromMysql(pstData, pcDesName);
+	memset(pstData->pData, 0, MAX_WORD_LEN + 1);
+	strcpy(pstData->pData, "删除成功");
+	write(srcFd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
 }
 
 /* 接收用户一对一通信的请求 */

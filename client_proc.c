@@ -23,7 +23,7 @@ void doProcAddFriendRequest(MSG_DATA_S *pstClientMsg, char *pcName, int iSocket)
 	memset(pstClientMsg->pData, 0, MAX_WORD_LEN + 1);
 	strcpy(pstHead->desName, sendName);
 	/* 别人发来的请求报文 */
-	printf("%s请求添加您为好友,是否同意(输入两次0:同意  输入两次1:拒绝):\n", sendName);
+	printf("%s请求添加您为好友,是否同意(输入两次0:同意  输入两次-1:拒绝):\n", sendName);
 	scanf("%d", &choice);
 	//printf("choice = %d\n",choice);
 	if(choice == 0)

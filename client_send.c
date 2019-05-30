@@ -54,7 +54,7 @@ ulong sendAddFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 	
 	if(NULL == pstClientMsg)
 	{
-		perror("sendMsg2One");
+		perror("sendAddFriendMsg");
 		return ERROR_FAILED;
 	}
 	/* 首先填充报文头 */
@@ -83,7 +83,33 @@ ulong sendAddFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 /* 发送删除好友的请求 */
 ulong sendDelFriendMsg(MSG_DATA_S *pstClientMsg, int iSocket)
 {
+	ulong ulErrCode = ERROR_SUCCESS;
+	
+	if(NULL == pstClientMsg)
+	{
+		perror("sendDelFriendMsg");
+		return ERROR_FAILED;
+	}
+	/* 首先填充报文头 */
+	MSG_HEAD_S *pstMsgHead = (MSG_HEAD_S *)pstClientMsg;
+	system("clear");
+	printf("请输入你要删除好友的用户名(exit退出):");
+	scanf("%s",pstMsgHead->desName);
+	/* 这个getchar可以用来接收回车符
+	 * 如果不加这条语句的效果就是，回车符作为pcMsg发给了服务端 */
+	getchar();
+	if(strcmp(pstMsgHead->desName, "exit") == 0)
+	{
+		return ulErrCode;
+	}
 
+	do
+	{
+		// 向和服务端通信的套接字中写数据 
+		nwrite = write(iSocket, pstClientMsg, sizeof(MSG_DATA_S)); 
+	}while(nwrite == -1 && errno == EINTR);
+
+	return ulErrCode;
 }
 
 /* 发送消息给单个好友 */

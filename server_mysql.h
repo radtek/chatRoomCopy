@@ -19,4 +19,6 @@ extern  ulong   checkReciverIsFriend(MSG_DATA_S *pstData, char *pcDesName, int s
 /* 判断用户是否在系统中注册 */
 extern  ulong 	checkUserIsExist(char *pcDesName);
 
+extern  void     deleteFriendFromMysql(MSG_DATA_S *pstData, char *pcDesName);
+
 #endif

@@ -424,6 +424,7 @@ void 	getFriendList(char *pSrcName)
 	return;
 }
 
+/* 添加好友操作 */
 void insertFriend2Mysql(char *pSendName, char *pRecvName)
 {
 	//printf("pSendName = %s, pRecvName = %s\n",pSendName, pRecvName);
@@ -449,13 +450,14 @@ void insertFriend2Mysql(char *pSendName, char *pRecvName)
 	res += mysql_query(pConnect, insertSql2);
     if(res != 0)
 	{
-		perror("getFriendList:mysql_query");
+		perror("insertFriend2Mysql:mysql_query");
 	}
 
 	mysql_close(pConnect);
 
 	return;
 }
+
 
 #if 0
 int main()

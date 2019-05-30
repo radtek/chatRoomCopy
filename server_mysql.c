@@ -163,8 +163,41 @@ ulong 	checkUserIsExist(char *pcDesName)
 	return ulErrCode;
 }
 
+/* 删除好友操作 */
+void     deleteFriendFromMysql(MSG_DATA_S *pstData, char *pcDesName)
+{
+	assert(pstData   != NULL);
+	assert(pcDesName != NULL);
 
+	int res = 0;
+	char msg[32];
+	char deleteSql1[128];
+	char deleteSql2[128];
+	MSG_HEAD_S *pstHead = (MSG_HEAD_S *)pstData;
+	MYSQL 	*pConnect = NULL;
+	pConnect = mysql_init(NULL);
+	if(pConnect == NULL)
+	{
+		perror("mysql_init");
+		return;
+	}
+	pConnect = mysql_real_connect(pConnect, MYSQL_HOST, MYSQL_USER, MYSQL_PWD, "mysql", 0, NULL, 0);
+	if(NULL == pConnect)
+	{
+		handle_error("mysql_real_connect");
+	}
+	printf("删除操作:srcName = %s, desName =%s\n", pstHead->srcName, pcDesName);
+	snprintf(deleteSql1, sizeof(deleteSql1), "delete from friends where srcName = '%s' and desName = '%s'", pstHead->srcName, pcDesName);
+	snprintf(deleteSql2, sizeof(deleteSql2), "delete from friends where srcName = '%s' and desName = '%s'", pcDesName, pstHead->srcName);
+	res = mysql_query(pConnect, deleteSql1); 
+	res += mysql_query(pConnect, deleteSql2);
+    if(res != 0)
+	{
+		perror("deleteFriendFromMysql:mysql_query");
+	}
 
+	mysql_close(pConnect);
+}
 
 
 
