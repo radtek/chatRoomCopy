@@ -86,7 +86,6 @@ ulong   checkReciverIsFriend(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 	MYSQL_RES 	*pResult  = NULL;
 	char tmpSql[128];
 	char srcName[MAX_NAME_LEN + 1];
-	char desName[MAX_NAME_LEN + 1];
 	int iRowCount = 0;
 	int res;
 	pConnect = mysql_init(NULL);
@@ -96,8 +95,7 @@ ulong   checkReciverIsFriend(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 		handle_error("mysql_real_connect");
 	}
 	strcpy(srcName, pstHead->srcName);
-	strcpy(desName, pstHead->desName);
-	snprintf(tmpSql, sizeof(tmpSql), "select * from friends where srcName = '%s' and desName = '%s'", srcName, desName);
+	snprintf(tmpSql, sizeof(tmpSql), "select * from friends where srcName = '%s' and desName = '%s'", srcName, pcDesName);
 
 	res = mysql_query(pConnect, tmpSql);
 	if(res != 0)

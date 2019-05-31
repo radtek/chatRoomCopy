@@ -33,9 +33,14 @@ void main02()
 	printf("%s\n", str);    //hehe
 }
 
+void main03()
+{
+	
+}
+
 int main()
 {
-	main02();
+	main03();
 }
 
 

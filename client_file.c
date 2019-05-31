@@ -98,7 +98,8 @@ void doSendFile(MSG_DATA_S  *pstClientMsg, char *pcFilePath, int iSocket)
 	}
 	filesize = fileinfo.st_size;
 	pstHead->filesize = filesize;
-	//printf("SendFile start\n");
+	int sumBytes = 0;
+	printf("SendFile start\n");
 	while(!feof(fp))
 	{
 		memset(fileBuf, 0, sizeof(fileBuf));
@@ -111,6 +112,7 @@ void doSendFile(MSG_DATA_S  *pstClientMsg, char *pcFilePath, int iSocket)
 		}
 		else
 		{
+			sumBytes += nread;
 			//printf("%s",fileBuf);
 			memset((char *)pstClientMsg + sizeof(MSG_HEAD_S), 0, sizeof(fileBuf));
 			/* 封装成完整报文体之后发给服务器 */
@@ -118,7 +120,8 @@ void doSendFile(MSG_DATA_S  *pstClientMsg, char *pcFilePath, int iSocket)
 			write(iSocket, pstClientMsg, sizeof(MSG_DATA_S));
 		}
 	}
-	//printf("SendFile success\n");
+	printf("SendFile success : filesize %d, send bytes %d\n", 
+			filesize, sumBytes);
 
 end:
 	if(fp != NULL)
@@ -129,9 +132,14 @@ end:
 	return;
 }
 
+
+
+#if 0
+
 /* 接收文件 */
 void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 {
+	printf("正在接收一份新文件 :\n");
 	assert(pstClientMsg != NULL);
 	assert(pcName != NULL);
 
@@ -164,13 +172,13 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	/* 别人发来的文件 */
 	int filesize = pstHead->filesize;
 	int nread = 0;
-	char *pcFileBuf = (char *)malloc(MAX_WORD_LEN + 1);
-	if(NULL == pcFileBuf)
+	char *fileBuf = (char *)malloc(MAX_WORD_LEN + 1);
+	if(NULL == fileBuf)
 	{
 		perror("doRecvFile:malloc");
 		return;
 	}
-	int fileFd = open("tmp.txt", O_CREAT | O_APPEND | O_RDWR, 0644);
+	int fileFd = open("tmp.png", O_CREAT | O_APPEND | O_RDWR, 0644);
 	if(-1 == fileFd)
 	{
 		perror("doRecvFile:open");
@@ -179,29 +187,29 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	//printf("待接收的文件大小 : %d\n", filesize);
 	//while(filesize > 0)
 	//{
-		memset(pcFileBuf, 0, MAX_WORD_LEN + 1);
+		memset(fileBuf, 0, MAX_WORD_LEN + 1);
 		/* 拷贝报文体中的数据到缓冲区 */
-		memcpy(pcFileBuf, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-		//printf("\n\n%s\n\n", pcFileBuf);
+		memcpy(fileBuf, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+		//printf("\n\n%s\n\n", fileBuf);
 		/* 将缓冲区的内容写入文件 */
-		int nwrite = write(fileFd, pcFileBuf, strlen(pcFileBuf));
+		int nwrite = write(fileFd, fileBuf, strlen(pcFileBuf));
 		if(nwrite == -1)
 		{
 			perror("doRecvFile:write");
 			return;
 		}
 		//printf("recv pFileBuf:%s\n", pFileBuf);
-		//filesize -= strlen(pcFileBuf);
+		//filesize -= strlen(fileBuf);
 	//}
 	//printf("file packet num:%d\n", *pFilePacketNum);
-	if(filesize <= ((*pFilePacketNum + 1)*MAX_WORD_LEN))
+	if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
 	{
 		printf("您收到一份文件,接收时间:\n");
 		*pFilePacketNum = 0;
 	}
 	else
 	{
-		*pFilePacketNum++;
+		(*pFilePacketNum)++;
 	}
 
 end:
@@ -210,49 +218,94 @@ end:
 		close(fileFd);		/* 关闭文件描述符 */
 	}
 	
-	if(pcFileBuf != NULL)
+	if(fileBuf != NULL)
 	{
-		free(pcFileBuf);
-		pcFileBuf = NULL;
+		free(fileBuf);
+		fileBuf = NULL;
 	}
 
 	return;
 }
 
-
-#if 1
 #else
-
-/* 发送抑或接收文件 */
-void	doSendAndRecvFile(char *pstClientMsg, char *pcName, int iSocket)
+/* 接收文件 */
+void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 {
-	MSG_HEAD_S 	*pstHead = (MSG_HEAD_S *)pstClientMsg;
-	/* 发送者是自己, 说明服务端发来的消息是有关接收者套接字信息的,即接下来应该执行发送文件的操作 */
-	if(strcmp(pstHead->srcName, pcName) == 0)
-	{
-		doSendFile(pstClientMsg);
-	}
-	else	
-	{
-		doRecvFile(pstClientMsg, iSocket);
-	}
-}	
+	printf("正在接收一份新文件 :\n");
+	assert(pstClientMsg != NULL);
+	assert(pcName != NULL);
 
-int main()
-{
+	MSG_HEAD_S *pstHead = (MSG_HEAD_S *)pstClientMsg;
 
-	doCommandLs();
-	int i = 0;
-	char **resStr = (char **)malloc(sizeof(char *)*5);
-	for(i=0; i<5; i++)
+	/* 这个判断流程只走一次，即第一个分片报文过来的时候 */
+	if(*pFilePacketNum == 0)
 	{
-		resStr[i] = (char *)malloc(20);
+		char *pRecvMsg = (char *)malloc(MAX_WORD_LEN + 1);
+		if(NULL == pRecvMsg)
+		{
+			perror("doRecvFile:malloc");
+			return;
+		}
+		/* 报文原路返回，即接收者不在线 */
+		if(strcmp(pstHead->srcName,pcName) == 0)
+		{
+			//memcpy(pRecvMsg, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+			memcpy(pRecvMsg, pstClientMsg->pData, MAX_WORD_LEN);
+			printf("%s\n", pRecvMsg);
+			if(pRecvMsg != NULL)
+			{
+				free(pRecvMsg);
+				pRecvMsg = NULL;
+			}
+			return;
+		}
 	}
-	char str[20] = "put a.txt";
-	mySplit(str, ' ', resStr);
-	printf("%s\n",resStr[1]);
+	
+	/* 别人发来的文件 */
+	int filesize = pstHead->filesize;
+	int nread = 0;
+	FILE *fp = NULL;
+	char  fileBuf[MAX_WORD_LEN + 1];
+	fp = fopen("tmp.png", "ab+");
+	if(NULL == fp)
+	{
+		perror("doRecvFile:open");
+		return;
+	}
+	printf("待接收的文件大小 : %d\n", filesize);
+	//while(filesize > 0)
+	//{
+		memset(fileBuf, 0, MAX_WORD_LEN + 1);
+		/* 拷贝报文体中的数据到缓冲区 */
+		memcpy(fileBuf, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+		//printf("\n\n%s\n\n", fileBuf);
+		/* 将缓冲区的内容写入文件 */
+		int nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
+		if(nwrite <= 0)
+		{
+			perror("doRecvFile:fwrite");
+			return;
+		}
+		//filesize -= strlen(fileBuf);
+	//}
+	printf("nwrite bytes : %d\n", nwrite);
+	if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
+	{
+		printf("您收到一份文件,接收时间:\n");
+		*pFilePacketNum = 0;
+	}
+	else
+	{
+		(*pFilePacketNum)++;
+	}
 
-	MSG_DATA_S *pstMsgData = (MSG_DATA_S *)malloc(sizeof(MSG_DATA_S));
-	SendFileRequest2Server(pstMsgData, "test.c", 2);
+end:
+	if(fp != NULL)
+	{
+		fclose(fp);		/* 关闭文件描述符 */
+	}
+	
+	return;
 }
+
 #endif

@@ -104,9 +104,12 @@ ulong 	procSendMsg2All(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 
 	//char *tmpWord = (char *)malloc(MAX_WORD_LEN);
 	Linklist 	*pSearchNode = g_pList->next;
-	while(pSearchNode != NULL)
+	while(pSearchNode != NULL) 
 	{
-		write(pSearchNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+		if(ERROR_SUCCESS == checkReciverIsFriend(pstData, pSearchNode->name, srcFd))
+		{
+			write(pSearchNode->sfd, pstData, sizeof(MSG_HEAD_S) + MAX_WORD_LEN);
+		}
 		pSearchNode = pSearchNode->next;
 	}
 	
@@ -141,7 +144,7 @@ ulong 	procSendFile2One(MSG_DATA_S *pstData, char *pcDesName, int srcFd)
 		//printf("\n\n%s\n\n", pstData->pData);
 		/* 将文件报文转发给接收者 */
 		write(pSearchNode->sfd, (char *)pstData, sizeof(MSG_DATA_S));
-		sleep(1);
+		usleep(1000);
 	}
 
 	return ulErrCode;
