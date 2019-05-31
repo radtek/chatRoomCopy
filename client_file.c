@@ -263,7 +263,7 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	
 	/* 别人发来的文件 */
 	int filesize = pstHead->filesize;
-	int nread = 0;
+	int nwrite = 0;
 	FILE *fp = NULL;
 	char  fileBuf[MAX_WORD_LEN + 1];
 	fp = fopen("tmp.png", "ab+");
@@ -272,7 +272,7 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		perror("doRecvFile:open");
 		return;
 	}
-	printf("待接收的文件大小 : %d\n", filesize);
+	printf("待接收的文件大小(bytes) : %d\n", filesize);
 	//while(filesize > 0)
 	//{
 		memset(fileBuf, 0, MAX_WORD_LEN + 1);
@@ -280,7 +280,17 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		memcpy(fileBuf, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
 		//printf("\n\n%s\n\n", fileBuf);
 		/* 将缓冲区的内容写入文件 */
-		int nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
+		if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
+		{
+			nwrite = fwrite(fileBuf, 1, strlen(fileBuf), fp);
+			printf("您收到一份文件,接收时间:\n");
+			*pFilePacketNum = 0;
+		}
+		else
+		{
+			nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
+			(*pFilePacketNum)++;
+		}
 		if(nwrite <= 0)
 		{
 			perror("doRecvFile:fwrite");
@@ -288,16 +298,7 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		}
 		//filesize -= strlen(fileBuf);
 	//}
-	printf("nwrite bytes : %d\n", nwrite);
-	if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
-	{
-		printf("您收到一份文件,接收时间:\n");
-		*pFilePacketNum = 0;
-	}
-	else
-	{
-		(*pFilePacketNum)++;
-	}
+		//printf("nwrite bytes : %d\n", nwrite);
 
 end:
 	if(fp != NULL)
