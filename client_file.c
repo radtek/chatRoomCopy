@@ -159,8 +159,8 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	/* 这个判断流程只走一次，即第一个分片报文过来的时候 */
 	if(*pFilePacketNum == 0)
 	{
-		char *pRecvMsg = (char *)malloc(MAX_WORD_LEN + 1);
-		if(NULL == pRecvMsg)
+		char *recvMsg = (char *)malloc(MAX_WORD_LEN + 1);
+		if(NULL == recvMsg)
 		{
 			perror("doRecvFile:malloc");
 			return;
@@ -168,13 +168,13 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		/* 报文原路返回，即接收者不在线 */
 		if(strcmp(pstHead->srcName,pcName) == 0)
 		{
-			//memcpy(pRecvMsg, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-			memcpy(pRecvMsg, pstClientMsg->pData, MAX_WORD_LEN);
-			printf("%s\n", pRecvMsg);
-			if(pRecvMsg != NULL)
+			//memcpy(recvMsg, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+			memcpy(recvMsg, pstClientMsg->pData, MAX_WORD_LEN);
+			printf("%s\n", recvMsg);
+			if(recvMsg != NULL)
 			{
-				free(pRecvMsg);
-				pRecvMsg = NULL;
+				free(recvMsg);
+				recvMsg = NULL;
 			}
 			return;
 		}
@@ -247,29 +247,19 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	assert(pcName != NULL);
 
 	MSG_HEAD_S *pstHead = (MSG_HEAD_S *)pstClientMsg;
-
-	/* 这个判断流程只走一次，即第一个分片报文过来的时候 */
-	if(*pFilePacketNum == 0)
+	char recvMsg[MAX_WORD_LEN + 1];
+	/* 报文原路返回，即接收者不在线 */
+	if(strcmp(pstHead->srcName,pcName) == 0)
 	{
-		char *pRecvMsg = (char *)malloc(MAX_WORD_LEN + 1);
-		if(NULL == pRecvMsg)
+		/* 这个判断流程只走一次，即第一个分片报文过来的时候 */
+		if(*pFilePacketNum == 0)
 		{
-			perror("doRecvFile:malloc");
-			return;
+			//memcpy(recvMsg, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
+			memcpy(recvMsg, pstClientMsg->pData, MAX_WORD_LEN);
+			printf("%s\n", recvMsg);
 		}
-		/* 报文原路返回，即接收者不在线 */
-		if(strcmp(pstHead->srcName,pcName) == 0)
-		{
-			//memcpy(pRecvMsg, (char *)pstClientMsg + sizeof(MSG_HEAD_S), MAX_WORD_LEN);
-			memcpy(pRecvMsg, pstClientMsg->pData, MAX_WORD_LEN);
-			printf("%s\n", pRecvMsg);
-			if(pRecvMsg != NULL)
-			{
-				free(pRecvMsg);
-				pRecvMsg = NULL;
-			}
-			return;
-		}
+
+		return;
 	}
 	
 	/* 别人发来的文件 */
@@ -295,7 +285,15 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		/* 将缓冲区的内容写入文件 */
 		if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
 		{
-			nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
+			if(strstr(filename, "png") != NULL || 
+					strstr(filename, "jpg") != NULL)
+			{
+				nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
+			}
+			else
+			{
+				nwrite = fwrite(fileBuf, 1, strlen(fileBuf), fp);
+			}
 			printf("您收到一份文件,接收时间:\n");
 			*pFilePacketNum = 0;
 		}
@@ -311,7 +309,6 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		}
 		//filesize -= strlen(fileBuf);
 	//}
-		//printf("nwrite bytes : %d\n", nwrite);
 
 end:
 	if(fp != NULL)
