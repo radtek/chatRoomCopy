@@ -23,6 +23,16 @@ int mySplit(char *str, char delim, char **retStr)
 	return;
 }
 
+void doCommandCd(char *pcPath)
+{
+	if(-1 == chdir(pcPath))
+	{
+		perror("pcPath");
+	}
+
+	return;
+}
+
 void doCommandLs()
 {
 	system("ls");	
@@ -98,6 +108,7 @@ void doSendFile(MSG_DATA_S  *pstClientMsg, char *pcFilePath, int iSocket)
 	}
 	filesize = fileinfo.st_size;
 	pstHead->filesize = filesize;
+	strcpy(pstHead->filename, pcFilePath);
 	int sumBytes = 0;
 	printf("SendFile start\n");
 	while(!feof(fp))
@@ -263,10 +274,12 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 	
 	/* 别人发来的文件 */
 	int filesize = pstHead->filesize;
+	char filename[MAX_NAME_LEN + 1];
+	strcpy(filename, pstHead->filename);
 	int nwrite = 0;
 	FILE *fp = NULL;
 	char  fileBuf[MAX_WORD_LEN + 1];
-	fp = fopen("tmp.png", "ab+");
+	fp = fopen(filename, "ab+");
 	if(NULL == fp)
 	{
 		perror("doRecvFile:open");
@@ -282,7 +295,7 @@ void doRecvFile(MSG_DATA_S  *pstClientMsg, char *pcName, int *pFilePacketNum)
 		/* 将缓冲区的内容写入文件 */
 		if(filesize <= (((*pFilePacketNum) + 1) * MAX_WORD_LEN))
 		{
-			nwrite = fwrite(fileBuf, 1, strlen(fileBuf), fp);
+			nwrite = fwrite(fileBuf, 1, sizeof(fileBuf) - 1, fp);
 			printf("您收到一份文件,接收时间:\n");
 			*pFilePacketNum = 0;
 		}

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
@@ -35,13 +36,26 @@ void main02()
 
 void main03()
 {
-	
+	char path[32] = "..";
+	char a[20];
+	while(1)
+	{
+		printf("请输入：");
+		scanf("%s",a);
+		if(strcmp(a, "cd") == 0)
+		{
+			if(chdir(path) < 0)
+				perror("chdir");
+			system("ls");
+		}
+		else
+		{
+			printf("hehe\n");
+		}
+	}
 }
 
 int main()
 {
 	main03();
 }
-
-
-

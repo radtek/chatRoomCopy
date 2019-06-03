@@ -80,6 +80,7 @@ typedef struct requestMsgHead
 		char srcName[MAX_NAME_LEN + 1];     //发送者
 		char desName[MAX_NAME_LEN + 1];     //接收者
 		int  filesize;						//传输的文件大小
+		char filename[MAX_NAME_LEN + 1];    //传输的文件名称
 }MSG_HEAD_S;
 
 /* 报文内容 */

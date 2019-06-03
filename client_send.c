@@ -261,7 +261,7 @@ ulong sendFile2One(MSG_DATA_S *pstClientMsg, int iSocket)
 	strcpy(pstMsgHead->desName, recvName);
 	do
 	{
-		printf("ftp>(ls:查看文件 put:上传文件 exit:退出)");
+		printf("ftp>(ls:查看 cd:切换 put:上传 exit:退出)");
 		memset(command, 0, sizeof(command));
 		gets(command);
 		if(strcmp(command, "exit") == 0)
@@ -281,6 +281,10 @@ ulong sendFile2One(MSG_DATA_S *pstClientMsg, int iSocket)
 			{
 				/* 读取指定文件并发送 */
 				doSendFile(pstClientMsg, pResult[1], iSocket);
+			}
+			else if(pResult[0] != NULL && strcmp(pResult[0], "cd") == 0)
+			{
+				doCommandCd(pResult[1]);
 			}
 			else
 			{

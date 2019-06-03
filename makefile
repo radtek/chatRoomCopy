@@ -9,7 +9,7 @@ target = server_daemon client_daemon
 server_daemon_obj = server_daemon.o threadPool.o linklist.o server_proc.o server_mysql.o 
 client_daemon_obj = client_daemon.o client_send.o mysql.o client_file.o client_proc.o
 
-client_daemon1_obj = client_daemon.o client_send.o mysql.o
+#client_daemon1_obj = client_daemon.o client_send.o mysql.o
 
 server_daemon : $(server_daemon_obj)
 	gcc $(CFLAGS) $^ -o $@ $(LDFLAGS) 
